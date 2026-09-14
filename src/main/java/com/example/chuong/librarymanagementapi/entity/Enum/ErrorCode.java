@@ -1,0 +1,32 @@
+package com.example.chuong.librarymanagementapi.entity.Enum;
+
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+
+@Getter
+@RequiredArgsConstructor
+public enum ErrorCode {
+    BOOK_NOT_FOUND(404,"BOOK NOT FOUND"),
+    CATEGORY_NOT_FOUND(404,"CATEGORY NOT FOUND"),
+    CATEGORY_EXISTED(400,"CATEGORY EXISTED"),
+    USER_FALSE(400,"USER FALSE"),
+    PASSWORD_FALSE(400,"PASSWORD FALSE"),
+    USERNAME_EXISTED(400,"USERNAME EXISTED"),
+    USER_NOT_FOUND(404, "USER NOT FOUND"),
+    BORROW_NOT_FOUND(404, "BORROW RECORD NOT FOUND"),
+    BOOK_OUT_OF_STOCK(400, "BOOK OUT OF STOCK"),
+    ALREADY_RETURNED(400, "BOOK ALREADY RETURNED"),
+    INVALID_RETURN_DATE(400, "RETURN DATE MUST BE AFTER BORROW DATE"),
+    BORROW_LIMIT_EXCEEDED(400, "USER HAS EXCEEDED MAXIMUM BORROW LIMIT (5 BOOKS)"),
+    ALREADY_BORROWED(400, "YOU HAVE ALREADY BORROWED THIS BOOK AND NOT RETURNED IT YET"),
+    INVALID_SORT_FIELD(400,"INVALID SORT FIELDS"),
+    INVALID_PRICE_RANGE(400,"INVALID PRICE RANGE"),
+    INVALID_PAGINATION_PARAMS(400,"INVALID PAGINATION PARAMS");
+
+    private final int code;
+    private final String message;
+
+
+}
