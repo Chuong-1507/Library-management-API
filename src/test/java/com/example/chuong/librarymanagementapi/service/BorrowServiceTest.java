@@ -12,6 +12,7 @@ import com.example.chuong.librarymanagementapi.mapper.BorrowMapper;
 import com.example.chuong.librarymanagementapi.repository.BookRepository;
 import com.example.chuong.librarymanagementapi.repository.BorrowRepository;
 import com.example.chuong.librarymanagementapi.repository.UserRepository;
+import com.example.chuong.librarymanagementapi.service.EmailService;
 import com.example.chuong.librarymanagementapi.service.serviceImpl.BorrowServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -49,6 +50,9 @@ class BorrowServiceTest {
 
     @Mock
     private BorrowMapper borrowMapper;
+
+    @Mock
+    private EmailService emailService;
 
     //Tạo BorrowServiceImpl thật, sau đó inject các Mock Dependency vào nó
     @InjectMocks

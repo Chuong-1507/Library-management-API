@@ -54,6 +54,7 @@ public class User {
     )
     @Enumerated(EnumType.STRING)
     @Column(name = "role")
+    @Builder.Default
     private Set<Role> roles = new HashSet<>();
 
 

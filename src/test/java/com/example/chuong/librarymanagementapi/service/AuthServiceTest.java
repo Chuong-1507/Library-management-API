@@ -3,12 +3,16 @@ package com.example.chuong.librarymanagementapi.service;
 import com.example.chuong.librarymanagementapi.dto.request.Auth.LoginRequest;
 import com.example.chuong.librarymanagementapi.dto.request.Auth.RegisterRequest;
 import com.example.chuong.librarymanagementapi.dto.response.Auth.LoginResponse;
+import com.example.chuong.librarymanagementapi.dto.response.UserResponse;
 import com.example.chuong.librarymanagementapi.entity.Enum.ErrorCode;
 import com.example.chuong.librarymanagementapi.entity.Enum.Role;
+import com.example.chuong.librarymanagementapi.entity.RefreshToken;
 import com.example.chuong.librarymanagementapi.entity.User;
 import com.example.chuong.librarymanagementapi.exception.AppException;
+import com.example.chuong.librarymanagementapi.mapper.UserMapper;
 import com.example.chuong.librarymanagementapi.repository.UserRepository;
 import com.example.chuong.librarymanagementapi.security.JwtService;
+import com.example.chuong.librarymanagementapi.service.RefreshTokenService;
 import com.example.chuong.librarymanagementapi.service.serviceImpl.AuthServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,14 +35,23 @@ public class AuthServiceTest {
     @Mock private UserRepository userRepository;
     @Mock private PasswordEncoder passwordEncoder;
     @Mock private JwtService jwtService;
+    @Mock private UserMapper userMapper;
+    @Mock private RefreshTokenService refreshTokenService;
     @InjectMocks private AuthServiceImpl authService;
 
     @Test
     void register_success_passwordIsHashed() {
-        RegisterRequest request = new RegisterRequest("newuser", "Password123");
+        RegisterRequest request = RegisterRequest.builder()
+                .username("newuser")
+                .password("Password123")
+                .email("newuser@example.com")
+                .fullName("New User")
+                .build();
         when(userRepository.existsByUsername("newuser")).thenReturn(false);
+        when(userRepository.existsByEmail("newuser@example.com")).thenReturn(false);
         when(passwordEncoder.encode("Password123")).thenReturn("hashed");
         when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(userMapper.toUserResponse(any(User.class))).thenReturn(new UserResponse());
 
         authService.register(request);
 
@@ -49,7 +62,12 @@ public class AuthServiceTest {
 
     @Test
     void register_duplicateUsername_throwsException() {
-        RegisterRequest request = new RegisterRequest("existing", "Password123");
+        RegisterRequest request = RegisterRequest.builder()
+                .username("existing")
+                .password("Password123")
+                .email("existing@example.com")
+                .fullName("Existing User")
+                .build();
         when(userRepository.existsByUsername("existing")).thenReturn(true);
 
         AppException ex = assertThrows(AppException.class, () -> authService.register(request));
@@ -70,7 +88,7 @@ public class AuthServiceTest {
 
     @Test
     void login_wrongPassword_throwsException() {
-        User user = User.builder().username("john").password("hashed").build();
+        User user = User.builder().username("john").password("hashed").enabled(true).build();
         LoginRequest request = new LoginRequest("john", "wrongpass");
         when(userRepository.findByUsername("john")).thenReturn(Optional.of(user));
         when(passwordEncoder.matches("wrongpass", "hashed")).thenReturn(false);
@@ -82,15 +100,18 @@ public class AuthServiceTest {
 
     @Test
     void login_success_returnsAccessToken() {
-        User user = User.builder().username("john").password("hashed").roles(Set.of(Role.USER)).build();
+        User user = User.builder().username("john").password("hashed").enabled(true).roles(Set.of(Role.USER)).build();
         LoginRequest request = new LoginRequest("john", "correct");
         when(userRepository.findByUsername("john")).thenReturn(Optional.of(user));
         when(passwordEncoder.matches("correct", "hashed")).thenReturn(true);
         when(jwtService.generateToken(user)).thenReturn("jwt.token");
+        RefreshToken refreshToken = RefreshToken.builder().token("refresh.token").build();
+        when(refreshTokenService.createRefreshToken(user)).thenReturn(refreshToken);
 
         LoginResponse response = authService.login(request);
 
         assertThat(response.getAccessToken()).isEqualTo("jwt.token");
+        assertThat(response.getRefreshToken()).isEqualTo("refresh.token");
     }
 
 }

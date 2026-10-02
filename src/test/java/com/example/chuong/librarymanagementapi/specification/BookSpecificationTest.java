@@ -36,7 +36,10 @@ import static org.assertj.core.api.Assertions.assertThat;
  *</p>
  */
 
+import org.springframework.test.context.ActiveProfiles;
+
 @DataJpaTest
+@ActiveProfiles("test")
 public class BookSpecificationTest {
     @Autowired
     private BookRepository bookRepository;

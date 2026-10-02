@@ -7,7 +7,7 @@ import com.example.chuong.librarymanagementapi.entity.Enum.Role;
 import com.example.chuong.librarymanagementapi.entity.User;
 import com.example.chuong.librarymanagementapi.repository.UserRepository;
 import jakarta.transaction.Transactional;
-import org.junit.jupiter.api.MediaType;
+import org.springframework.http.MediaType;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -15,7 +15,6 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.ResultMatcher;
 import tools.jackson.databind.ObjectMapper;
 
 import java.util.Set;
@@ -38,10 +37,15 @@ public class AuthControllerTest {
 
     @Test
     void register_success_returns201() throws Exception {
-        RegisterRequest request = new RegisterRequest("newuser", "password123");
+        RegisterRequest request = RegisterRequest.builder()
+                .username("newuser")
+                .password("password123")
+                .email("newuser@example.com")
+                .fullName("New User")
+                .build();
 
         mockMvc.perform(post("/api/auth/register")
-                        .contentType(String.valueOf(MediaType.APPLICATION_JSON))
+                        .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated());
 
@@ -52,9 +56,16 @@ public class AuthControllerTest {
     void register_duplicateUsername_returns400() throws Exception {
         userRepository.save(User.builder().username("existing").password(passwordEncoder.encode("x")).roles(Set.of(Role.USER)).build());
 
+        RegisterRequest request = RegisterRequest.builder()
+                .username("existing")
+                .password("Password123")
+                .email("existing@example.com")
+                .fullName("Existing User")
+                .build();
+
         mockMvc.perform(post("/api/auth/register")
-                        .contentType(String.valueOf(MediaType.APPLICATION_JSON))
-                        .content(objectMapper.writeValueAsString(new RegisterRequest("existing", "Password123"))))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value(ErrorCode.USERNAME_EXISTED.getCode()));
     }
@@ -64,7 +75,7 @@ public class AuthControllerTest {
         userRepository.save(User.builder().username("john").password(passwordEncoder.encode("correctpass")).roles(Set.of(Role.USER)).build());
 
         String body = mockMvc.perform(post("/api/auth/login")
-                        .contentType(String.valueOf(MediaType.APPLICATION_JSON))
+                        .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(new LoginRequest("john", "correctpass"))))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
@@ -81,7 +92,7 @@ public class AuthControllerTest {
         userRepository.save(User.builder().username("john").password(passwordEncoder.encode("correctpass")).roles(Set.of(Role.USER)).build());
 
         mockMvc.perform(post("/api/auth/login")
-                        .contentType(String.valueOf(MediaType.APPLICATION_JSON))
+                        .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(new LoginRequest("john", "wrongpass"))))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value(ErrorCode.PASSWORD_FALSE.getCode()));

@@ -39,9 +39,9 @@ public class BorrowServiceIntegrationTest {
         // Đăng ký các cấu hình database cho Spring Boot khi chạy test.
         // Vì MySQL được tạo động bởi Testcontainers nên URL, username, password
         // không cố định → lấy trực tiếp từ MySQL container.
-        registry.add("spring.database.url",mySQLContainer::getJdbcUrl);
-        registry.add("spring.database.username",mySQLContainer::getUsername);
-        registry.add("spring.database.password",mySQLContainer::getPassword);
+        registry.add("spring.datasource.url",mySQLContainer::getJdbcUrl);
+        registry.add("spring.datasource.username",mySQLContainer::getUsername);
+        registry.add("spring.datasource.password",mySQLContainer::getPassword);
     }
 
     @Autowired private BorrowService borrowService;

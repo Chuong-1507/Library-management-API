@@ -13,12 +13,16 @@ import java.time.LocalDateTime;
 
 @Mapper(componentModel = "spring")
 public interface BookMapper {
-    @Mapping(target = "category",ignore = true)
-    @Mapping(target = "id",ignore = true)
+    @Mapping(target = "category", ignore = true)
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "availableQuantity", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
     Book createToBook(BookCreateRequest request);
 
-    @Mapping(target = "category",ignore = true)
-    @Mapping(target = "id",ignore = true)
+    @Mapping(target = "category", ignore = true)
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "availableQuantity", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
     void updateBook(BookUpdateRequest request,
                     @MappingTarget Book book
     );

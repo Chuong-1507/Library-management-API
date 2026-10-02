@@ -7,6 +7,10 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 @Getter
+@Setter
+@Builder
+@NoArgsConstructor(force = true)
+@AllArgsConstructor
 @RequiredArgsConstructor
 public class RegisterRequest {
     @NotBlank(message = "Username không được để trống")
