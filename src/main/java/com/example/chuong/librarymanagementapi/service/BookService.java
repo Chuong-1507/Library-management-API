@@ -7,6 +7,8 @@ import com.example.chuong.librarymanagementapi.dto.request.Page.PageResponse;
 import com.example.chuong.librarymanagementapi.dto.response.BookResponse;
 
 import com.example.chuong.librarymanagementapi.entity.Book;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.UUID;
@@ -23,6 +25,9 @@ public interface BookService {
     BookResponse updateBook(UUID id, BookUpdateRequest request);
 
     void deleteBook(UUID id);
+
+    //interface
+    Page<BookResponse> searchBooks(String keyword, Pageable pageable);
 
     //Tìm kiếm theo phân trang
     PageResponse<BookResponse> searchBooks(

@@ -1,4 +1,4 @@
-package com.example.chuong.librarymanagementapi.service.impl;
+package com.example.chuong.librarymanagementapi.service.serviceImpl;
 
 import com.example.chuong.librarymanagementapi.config.PaginationUtils;
 import com.example.chuong.librarymanagementapi.dto.request.BookCreateRequest;
@@ -17,14 +17,18 @@ import com.example.chuong.librarymanagementapi.service.BookService;
 import com.example.chuong.librarymanagementapi.specification.BookSpecification;
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -38,6 +42,7 @@ public class BookServiceImpl implements BookService {
     );
     private static final String DEFAULT_SORT_FIELD = "createdAt";// Nếu user không truyền tiêu chí sort thì mặc định sắp xếp theo trường createdAt
 
+    @CacheEvict(value = "books", allEntries = true)// Thu hồi toàn bộ dữ liệu trong Redis
     @Override
     @PreAuthorize("hasRole('ADMIN')")
     public BookResponse createBook(BookCreateRequest request) {
@@ -45,6 +50,7 @@ public class BookServiceImpl implements BookService {
                 .orElseThrow(()-> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
         Book book = mapper.createToBook(request);
         book.setCategory(category);
+        book.setAvailableQuantity(book.getTotalQuantity());
         book.setCreatedAt(LocalDate.now());
 
         Book savedBook = bookRepository.save(book);
@@ -73,6 +79,7 @@ public class BookServiceImpl implements BookService {
         return booksList.stream().toList();
     }
 
+    @CacheEvict(value = "books", allEntries = true)// Thu hồi toàn bộ dữ liệu trong Redis
     @Override
     public BookResponse updateBook(UUID id, BookUpdateRequest request) {
         Book book = bookRepository.findById(id)
@@ -83,7 +90,18 @@ public class BookServiceImpl implements BookService {
         book.setTitle(request.getTitle());
         book.setPrice(request.getPrice());
         book.setAuthor(request.getAuthor());
-        book.setQuantity(request.getQuantity());
+        //cập nhật số lượng sách (validate)
+        if (request.getTotalQuantity() != null){
+            int borrowedCount = book.getTotalQuantity() - book.getAvailableQuantity();
+            if (request.getTotalQuantity() < borrowedCount){
+                throw new AppException(ErrorCode.INVALID_TOTAL_QUANTITY);
+            }
+            //tính số lượng chênh lệch sau thay đổi
+            int delta = request.getTotalQuantity() - book.getTotalQuantity();
+            book.setTotalQuantity(request.getTotalQuantity());
+            book.setAvailableQuantity(book.getAvailableQuantity() + delta);
+        }
+
         book.setCategory(updatedCategory);
         book.setPublisher(request.getPublisher());
         book.setPublicationYear(request.getPublicationYear());
@@ -93,6 +111,7 @@ public class BookServiceImpl implements BookService {
         return mapper.toResponse(updatedBook);
     }
 
+    @CacheEvict(value = "books", allEntries = true) //Thu hồi toàn bộ dữ liệu trong Redis
     @Override
     public void deleteBook(UUID id) {
         Book book = bookRepository.findById(id)
@@ -100,7 +119,18 @@ public class BookServiceImpl implements BookService {
         bookRepository.delete(book);
     }
 
+    @Override
+    public Page<BookResponse> searchBooks(String rawKeyword, Pageable pageable) {
+        String booleanKeyword = Arrays.stream(rawKeyword.trim().split("\\s+"))
+                .filter(w -> !w.isBlank())
+                .map(word-> word +"*")//Thêm * cho Full-Text Boolean Search
+                .collect(Collectors.joining(" "));
+        return bookRepository.searchBooksFullText(booleanKeyword,pageable)
+                .map(mapper::toResponse);
+    }
+
     //Tìm kiếm theo phân trang
+    @Cacheable(value = "books") // Lưu dữ liệu khi lần đầu gọi request vào Redis, lần sau gọi lại sẽ lấy dữ liệu thẳng trong Redis thay vì xuống DB
     @Override
     public PageResponse<BookResponse> searchBooks(BookFilterRequest filterRequest, int page, int size, String sort) {
         //1. Validate khoảng giá truớc khi query

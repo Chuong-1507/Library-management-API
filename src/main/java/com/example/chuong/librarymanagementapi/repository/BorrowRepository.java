@@ -1,11 +1,17 @@
 package com.example.chuong.librarymanagementapi.repository;
 
+import com.example.chuong.librarymanagementapi.dto.response.ActiveUserResponse;
+import com.example.chuong.librarymanagementapi.dto.response.PopularBookResponse;
+import com.example.chuong.librarymanagementapi.entity.Book;
 import com.example.chuong.librarymanagementapi.entity.Borrow;
 import com.example.chuong.librarymanagementapi.entity.Enum.Status;
+import com.example.chuong.librarymanagementapi.entity.User;
+import org.springframework.cglib.core.Local;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 
-import java.awt.print.Pageable;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
@@ -79,5 +85,35 @@ public interface BorrowRepository extends JpaRepository<Borrow, UUID>, JpaSpecif
                             @Param("today") LocalDate today);
 
 
+    List<Borrow> findAllByStatusAndReturnDateBefore(Status status, LocalDate now);
 
+    boolean existsByUserAndBookAndActualReturnDateIsNull(User user, Book book);
+
+    List<Borrow> findAllByStatusAndReturnDate(Status status, LocalDate returnDate);
+
+    @Query("SELECT COUNT(b) FROM Borrow b WHERE (:from IS NULL OR b.borrowDate >= :from) " +
+            "AND (:to IS NULL OR b.borrowDate <= :to)")
+    long countTotalBorrows(@Param("from") LocalDate from, @Param("to") LocalDate to);
+
+    @Query("SELECT COUNT(b) FROM Borrow b WHERE b.status = :status AND (:from IS NULL OR b.borrowDate >= :from) " +
+            "AND (:to IS NULL OR b.borrowDate <= :to)")
+    long countByStatusInRange(@Param("status") Status status, @Param("from") LocalDate from, @Param("to") LocalDate to);
+
+    @Query("SELECT COALESCE(SUM(b.fineAmount), 0) FROM Borrow b WHERE b.status = 'RETURNED' AND b.fineAmount > 0 " +
+    "AND (:from IS NULL OR b.borrowDate >= :from) AND (:to IS NULL OR b.borrowDate <= :to)")
+    BigDecimal sumFines(@Param("from") LocalDate from, @Param("to") LocalDate to);
+
+    @Query("SELECT COUNT(b) FROM Borrow b WHERE b.status = 'RETURNED' AND b.fineAmount > 0 "+
+    "AND (:from IS NULL OR b.borrowDate >= :from) AND (:to IS NULL OR b.borrowDate <= :to)")
+    long countBorrowsWithFine(@Param("from") LocalDate from, @Param("to") LocalDate to);
+
+    @Query("SELECT new com.example.chuong.librarymanagementapi.dto.response.PopularBookResponse(b.book.id, b.book.title, b.book.author, COUNT(b)) " +
+            "FROM Borrow b WHERE (:from IS NULL OR b.borrowDate >= :from) AND (:to IS NULL OR b.borrowDate <= :to) " +
+            "GROUP BY b.book.id, b.book.title, b.book.author ORDER BY COUNT(b) DESC")
+    List<PopularBookResponse> findPopularBooks(@Param("from") LocalDate from, @Param("to") LocalDate to, Pageable pageable);
+
+    @Query("SELECT new com.example.chuong.librarymanagementapi.dto.response.ActiveUserResponse(b.user.id, b.user.username, b.user.fullName, COUNT(b)) " +
+            "FROM Borrow b WHERE (:from IS NULL OR b.borrowDate >= :from) AND (:to IS NULL OR b.borrowDate <= :to) " +
+            "GROUP BY b.user.id, b.user.username, b.user.fullName ORDER BY COUNT(b) DESC")
+    List<ActiveUserResponse> findActiveUsers(@Param("from") LocalDate from, @Param("to") LocalDate to, Pageable pageable);
 }

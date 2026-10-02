@@ -2,10 +2,7 @@ package com.example.chuong.librarymanagementapi.dto.request;
 
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.management.loading.PrivateClassLoader;
 import java.math.BigDecimal;
@@ -21,6 +18,7 @@ import java.util.UUID;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode// Giúp Java nhận ra 2 DTO khác object nhưng cùng dữ liệu là tương đương nhau
 public class BookFilterRequest {
     /**
      * Tìm theo tên sách, dạng LIKE %title%, không phân biệt hoa thường.

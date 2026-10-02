@@ -20,6 +20,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
+    private final LoginRateLimitFilter loginRateLimitFilter;
+
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     @Bean
     public PasswordEncoder passwordEncoder(){
@@ -31,6 +33,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth->auth
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/v3/api-docs/**","/swagger-ui/**","/swagger-ui.html").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/books/**", "/api/categories/**").hasAnyRole("ADMIN", "USER")
                         .requestMatchers(HttpMethod.POST, "/api/books/**", "/api/categories/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/books/**", "/api/categories/**").hasRole("ADMIN")
@@ -39,6 +42,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/borrows/*/return").hasAnyRole("ADMIN", "USER")
                         .requestMatchers(HttpMethod.GET, "/api/borrows/my-borrows").hasAnyRole("ADMIN", "USER")
                         .requestMatchers(HttpMethod.GET, "/api/borrows").hasRole("ADMIN")
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
 
@@ -51,6 +55,8 @@ public class SecurityConfig {
                                         )
                         )
                 )
+                .addFilterBefore(loginRateLimitFilter,
+                        UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(
                         jwtAuthenticationFilter,
                         UsernamePasswordAuthenticationFilter.class

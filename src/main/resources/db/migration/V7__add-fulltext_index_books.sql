@@ -1,0 +1,1 @@
+ALTER TABLE books ADD FULLTEXT INDEX ft_books_title_author (title, author);

@@ -12,6 +12,9 @@ import com.example.chuong.librarymanagementapi.service.BookService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,6 +26,19 @@ import java.util.UUID;
 @RequestMapping("/api/books")
 public class BookController {
     private final BookService bookService;
+
+    @GetMapping("/search/full-text")
+    public ApiResponse<PageResponse<BookResponse>> searchBooks(
+            @RequestParam String keyword,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        Page<BookResponse> result = bookService.searchBooks(keyword, PageRequest.of(page - 1, size));
+
+        return ApiResponse.<PageResponse<BookResponse>>builder()
+                .result(PageResponse.fromPage(result))
+                .build();
+    }
 
     /**
      * Tìm kiếm & phân trang sách theo nhiều tiêu chí.
@@ -44,48 +60,67 @@ public class BookController {
     }
 
     @GetMapping
-    public ResponseEntity<List<BookResponse>> getAllBooks(){
-        List<BookResponse> bookResponseList = bookService.getAllBooks();
-        return ResponseEntity.ok(bookResponseList);
+    public ApiResponse<List<BookResponse>> getAllBooks(){
+        var result = bookService.getAllBooks();
+        return ApiResponse.<List<BookResponse>>builder()
+                .code(200)
+                .message("Lấy toàn bộ danh sách thành công")
+                .result(result)
+                .build();
+
     }
     @GetMapping("/withCategory")
-    public ResponseEntity<List<Book>> getAllBooksWithCategory(){
-        List<Book> bookList = bookService.getAllBooksWithCategory();
-        return ResponseEntity.ok(bookList);
+    public ApiResponse<List<Book>> getAllBooksWithCategory(){
+        var result = bookService.getAllBooksWithCategory();
+        return ApiResponse.<List<Book>>builder()
+                .code(200)
+                .message("Lấy toàn bộ danh sách cùng Category thành công")
+                .result(result)
+                .build();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<BookResponse> getBookById(@PathVariable UUID id){
-         BookResponse bookResponse = bookService.getBookById(id);
-         return ResponseEntity.ok(bookResponse);
+    public ApiResponse<BookResponse> getBookById(@PathVariable UUID id){
+         var result = bookService.getBookById(id);
+         return ApiResponse.<BookResponse>builder()
+                 .code(200)
+                 .message("Tìm sách thành công")
+                 .result(result)
+                 .build();
     }
 
 @PostMapping
-public ResponseEntity<ApiResponse<BookResponse>> insertBook(
+@ResponseStatus(HttpStatus.CREATED)
+public ApiResponse<BookResponse> insertBook(
         @Valid @RequestBody BookCreateRequest request) {
 
     BookResponse bookResponse = bookService.createBook(request);
 
-    ApiResponse<BookResponse> response = ApiResponse.<BookResponse>builder()
+    return ApiResponse.<BookResponse>builder()
             .code(200)
             .message("Thêm sách thành công")
             .result(bookResponse)
             .build();
-
-    return ResponseEntity.ok(response);
 }
 
     @PutMapping("/{id}")
-    public ResponseEntity<BookResponse> updateBook(
+    public ApiResponse<BookResponse> updateBook(
             @PathVariable UUID id
             ,@Valid @RequestBody BookUpdateRequest request){
-        BookResponse bookResponse = bookService.updateBook(id,request);
-        return ResponseEntity.ok(bookResponse);
+        BookResponse result = bookService.updateBook(id,request);
+        return ApiResponse.<BookResponse>builder()
+                .code(200)
+                .message("Lấy toàn bộ danh sách thành công")
+                .result(result)
+                .build();
     }
 
     @DeleteMapping("/{id}")
-    public void deleteBook(@PathVariable UUID id){
+    public ApiResponse<Void> deleteBook(@PathVariable UUID id) {
         bookService.deleteBook(id);
+        return ApiResponse.<Void>builder()
+                .message("Xóa sách thành công")
+                .build();
     }
 
 

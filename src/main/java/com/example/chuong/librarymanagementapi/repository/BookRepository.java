@@ -1,6 +1,8 @@
 package com.example.chuong.librarymanagementapi.repository;
 
 import com.example.chuong.librarymanagementapi.entity.Book;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.*;
 
 import jakarta.persistence.LockModeType;
@@ -28,4 +30,16 @@ public interface BookRepository extends JpaRepository<Book,UUID>, JpaSpecificati
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select b from Book b where b.id = :id")
     Optional<Book> findByIdWithLock(@Param("id") UUID id);
+
+    @Query(
+            value = "SELECT b.* FROM books b " +
+                    "WHERE MATCH(b.title, b.author) AGAINST (:keyword IN BOOLEAN MODE) " +
+                    "AND b.available_quantity > 0 " +
+                    "ORDER BY (SELECT COUNT(*) FROM borrows br WHERE br.book_id = b.id) DESC",
+            countQuery = "SELECT COUNT(*) FROM books b " +
+                    "WHERE MATCH(b.title, b.author) AGAINST (:keyword IN BOOLEAN MODE) " +
+                    "AND b.available_quantity > 0",
+            nativeQuery = true
+    )
+    Page<Book> searchBooksFullText(@Param("keyword") String keyword, Pageable pageable);
 }

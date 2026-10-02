@@ -4,6 +4,7 @@ import com.example.chuong.librarymanagementapi.dto.request.CategoryCreateRequest
 import com.example.chuong.librarymanagementapi.dto.request.CategoryFilterRequest;
 import com.example.chuong.librarymanagementapi.dto.request.CategoryUpdateRequest;
 import com.example.chuong.librarymanagementapi.dto.request.Page.PageResponse;
+import com.example.chuong.librarymanagementapi.dto.response.CategoryListResponse;
 import com.example.chuong.librarymanagementapi.dto.response.CategoryResponse;
 import com.example.chuong.librarymanagementapi.entity.Category;
 import org.springframework.stereotype.Service;
@@ -17,7 +18,7 @@ public interface CategoryService {
 
     CategoryResponse getCategoryById(UUID id);
 
-    List<CategoryResponse> getAllCategories();
+    CategoryListResponse getAllCategories();
 
     List<Category> getAllCategoriesWithBooks();
 

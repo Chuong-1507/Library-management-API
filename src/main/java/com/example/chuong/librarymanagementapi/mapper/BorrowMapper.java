@@ -1,6 +1,6 @@
 package com.example.chuong.librarymanagementapi.mapper;
 
-import com.example.chuong.librarymanagementapi.dto.response.Borrow.BorrowResponse;
+import com.example.chuong.librarymanagementapi.dto.response.BorrowResponse;
 import com.example.chuong.librarymanagementapi.entity.Borrow;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

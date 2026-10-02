@@ -54,11 +54,20 @@ public class Book {
     @NotNull
     @Column(nullable = false)
     @Min(value = 0, message = "Không được âm")
-    private Integer quantity;
+    //Số lượng sách có thể mượn được ngay
+    private Integer availableQuantity;
+
+    @NotNull
+    @Column(nullable = false)
+    @Min(value = 0, message = "Không được âm")
+    //total_quantity = available_quantity + quantity;
+    //Không đổi khi mượn/trả
+    private Integer totalQuantity;
+
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
-    @JsonIgnoreProperties("books")// khi serialize categirt, bỏ qua books của từng category (tránh vòng lặp)
+    @JsonIgnoreProperties("books")// khi serialize category, bỏ qua books của từng category (tránh vòng lặp)
     private Category category;
 
     @Column(updatable = false)

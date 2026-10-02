@@ -7,6 +7,7 @@ import com.example.chuong.librarymanagementapi.dto.request.CategoryUpdateRequest
 import com.example.chuong.librarymanagementapi.dto.request.Page.PageResponse;
 import com.example.chuong.librarymanagementapi.dto.response.ApiResponse;
 import com.example.chuong.librarymanagementapi.dto.response.BookResponse;
+import com.example.chuong.librarymanagementapi.dto.response.CategoryListResponse;
 import com.example.chuong.librarymanagementapi.dto.response.CategoryResponse;
 import com.example.chuong.librarymanagementapi.entity.Category;
 import com.example.chuong.librarymanagementapi.service.CategoryService;
@@ -59,8 +60,8 @@ public class CategoryController {
         return ResponseEntity.ok(categoryResponse);
     }
     @GetMapping
-    public ResponseEntity<List<CategoryResponse>> getAllCategories(){
-        List<CategoryResponse> categoryResponseList = categoryService.getAllCategories();
+    public ResponseEntity<CategoryListResponse> getAllCategories(){
+        CategoryListResponse categoryResponseList = categoryService.getAllCategories();
         return ResponseEntity.ok(categoryResponseList);
     }
     @GetMapping("/withBooks")

@@ -1,4 +1,4 @@
-package com.example.chuong.librarymanagementapi.dto.response.Borrow;
+package com.example.chuong.librarymanagementapi.dto.response;
 
 import com.example.chuong.librarymanagementapi.entity.Enum.Status;
 import lombok.AllArgsConstructor;
@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
 
@@ -24,5 +25,5 @@ public class BorrowResponse {
     private LocalDate actualReturnDate;
     private Status status;
     private long overdueDays;
-    private double fineAmount;
+    private BigDecimal fineAmount;
 }

@@ -1,18 +1,19 @@
 package com.example.chuong.librarymanagementapi.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 import com.example.chuong.librarymanagementapi.entity.Enum.Role;
+import org.hibernate.annotations.CreationTimestamp;
+
 @Entity
 @Getter
 @Setter
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "users")
@@ -26,6 +27,23 @@ public class User {
 
     @Column(nullable = false)
     private String password;
+
+    @Column(unique = true)
+    private String email;
+
+    @Column(name = "full_name")
+    private String fullName;
+
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private boolean enabled = true;
+
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
 
     @ElementCollection(fetch = FetchType.EAGER)
     // nói với Jpa rằng đây là một collection các giá trị đơn thuần load cùng USER

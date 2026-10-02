@@ -1,0 +1,1 @@
+ALTER TABLE borrows MODIFY COLUMN fine_amount DECIMAL(10,2);

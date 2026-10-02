@@ -12,12 +12,28 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
+import javax.naming.AuthenticationException;
+import java.nio.file.AccessDeniedException;
+import java.rmi.AccessException;
 import java.util.HashMap;
 import java.util.Map;
 
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+    // Access denied
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ApiResponse<Void>> handleAccessDenied(AccessDeniedException e){
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(new ApiResponse<>(403,"Access denied",null));
+    }
+    //Unauthorized
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ApiResponse<Void>> handleAuthentication(AuthenticationException e){
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(new ApiResponse<>(401,"Unauthorized",null));
+    }
+
     //Validation
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<?> handleValidationException(
@@ -124,12 +140,13 @@ public class GlobalExceptionHandler {
                 .message(exception.getMessage())
                 .result(null)
                 .build();
-        return ResponseEntity.status(errorCode.getCode())
+        return ResponseEntity.status(errorCode.getHttpStatus())
                 .body(response);
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<?> handleGeneral(Exception exception){
+        log.error("Unhandled exception: ", exception);
         ApiResponse<?> error = ApiResponse.builder()
                 .code(500).message("Internal server error").result(null).build();
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);

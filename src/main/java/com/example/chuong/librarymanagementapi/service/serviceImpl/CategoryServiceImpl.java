@@ -1,10 +1,11 @@
-package com.example.chuong.librarymanagementapi.service.impl;
+package com.example.chuong.librarymanagementapi.service.serviceImpl;
 
 import com.example.chuong.librarymanagementapi.config.PaginationUtils;
 import com.example.chuong.librarymanagementapi.dto.request.CategoryCreateRequest;
 import com.example.chuong.librarymanagementapi.dto.request.CategoryFilterRequest;
 import com.example.chuong.librarymanagementapi.dto.request.CategoryUpdateRequest;
 import com.example.chuong.librarymanagementapi.dto.request.Page.PageResponse;
+import com.example.chuong.librarymanagementapi.dto.response.CategoryListResponse;
 import com.example.chuong.librarymanagementapi.dto.response.CategoryResponse;
 import com.example.chuong.librarymanagementapi.entity.Category;
 import com.example.chuong.librarymanagementapi.entity.Enum.ErrorCode;
@@ -14,8 +15,9 @@ import com.example.chuong.librarymanagementapi.repository.CategoryRepository;
 import com.example.chuong.librarymanagementapi.service.CategoryService;
 import com.example.chuong.librarymanagementapi.specification.CategorySpecification;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -31,6 +33,7 @@ public class CategoryServiceImpl implements CategoryService {
     private static final List<String> ALLOWED_SORT_FIELDS = List.of("id","name");
     private static final String DEFAULT_SORT_FIELD = "name";
 
+    @CacheEvict(value = "categories", allEntries = true) //Thu hồi toàn bộ dữ liệu trong Redis
     @Override
     public CategoryResponse createCategory(CategoryCreateRequest request) {
         if (categoryRepository.existsByNameIgnoreCase(request.getName())){
@@ -49,12 +52,14 @@ public class CategoryServiceImpl implements CategoryService {
         return categoryMapper.toResponse(category);
     }
 
+    @Cacheable(value = "categories") //Lưu dữ liệu khi lần đầu gọi request vào Redis, lần sau gọi lại sẽ lấy thẳng dữ liệu ở cache trong Redis thay vì xuống DB
     @Override
-    public List<CategoryResponse> getAllCategories() {
+    public CategoryListResponse getAllCategories() {
         List<Category> categoryList = categoryRepository.findAll();
-        return categoryList.stream()
+        List<CategoryResponse> responseList = categoryList.stream()
                 .map(categoryMapper::toResponse)
                 .toList();
+        return CategoryListResponse.of(responseList);
     }
 
     @Override
@@ -64,6 +69,7 @@ public class CategoryServiceImpl implements CategoryService {
                 .toList();
     }
 
+    @CacheEvict(value = "categories", allEntries = true) //Thu hồi toàn bộ dữ liệu trong Redis
     @Override
     public CategoryResponse updateCategory(UUID id, CategoryUpdateRequest request) {
         Category category = categoryRepository.findById(id)
@@ -73,6 +79,7 @@ public class CategoryServiceImpl implements CategoryService {
         return categoryMapper.toResponse(updatedCategory);
     }
 
+    @CacheEvict(value = "categories", allEntries = true) //Thu hồi toàn bộ dữ liệu trong Redis
     @Override
     public void deleteCategory(UUID id) {
         Category category = categoryRepository.findById(id)

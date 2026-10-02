@@ -3,11 +3,9 @@ package com.example.chuong.librarymanagementapi.service;
 import com.example.chuong.librarymanagementapi.dto.request.Borrow.BorrowCreateRequest;
 import com.example.chuong.librarymanagementapi.dto.request.Borrow.BorrowFilterRequest;
 import com.example.chuong.librarymanagementapi.dto.request.Page.PageResponse;
-import com.example.chuong.librarymanagementapi.dto.response.Borrow.BorrowResponse;
-import com.example.chuong.librarymanagementapi.entity.Enum.Status;
+import com.example.chuong.librarymanagementapi.dto.response.BorrowResponse;
 import org.springframework.security.core.Authentication;
 
-import java.util.List;
 import java.util.UUID;
 
 public interface BorrowService {
@@ -24,21 +22,7 @@ public interface BorrowService {
      * tính toán phí phạt quá hạn (5,000 VND/ngày nếu quá hạn), cập nhật trạng thái RETURNED và cộng trả số lượng sách tồn kho (dùng Lock).
      */
     BorrowResponse returnBook(UUID borrowId, String currentUsername, boolean isAdmin);
-
-    /**
-     * Mục tiêu: Lấy danh sách phiếu mượn sách của người dùng đang đăng nhập.
-     * Cách thức: Tìm tất cả phiếu mượn thuộc về User (có thể lọc theo Status như BORROWING, OVERDUE, RETURNED),
-     * sau đó bổ sung thông tin số ngày quá hạn và tiền phạt hiện tại trước khi trả về.
-     */
-    List<BorrowResponse> getMyBorrows(String username, Status status);
-
-    /**
-     * Mục tiêu: Lấy toàn bộ phiếu mượn sách trong hệ thống dành cho Quản trị viên (ADMIN).
-     * Cách thức: Truy vấn tất cả phiếu mượn trong cơ sở dữ liệu (tối ưu hóa fetch join bằng EntityGraph),
-     * hỗ trợ lọc theo trạng thái và tính toán động phí phạt/số ngày quá hạn.
-     */
-    List<BorrowResponse> getAllBorrows(Status status);
-
+    
     /**
      * Mục tiêu: Cập nhật batch hàng loạt các phiếu mượn quá hạn sang trạng thái OVERDUE.
      * Cách thức: Gọi phương thức repository thực thi câu lệnh SQL UPDATE trực tiếp với điều kiện returnDate < today và status = BORROWING.

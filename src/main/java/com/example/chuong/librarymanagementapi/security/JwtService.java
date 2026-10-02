@@ -78,6 +78,10 @@ public class JwtService {
         return List.of();
     }
 
+    public Date extractExpiration(String token){
+        return extractAllClaims(token).getExpiration();
+    }
+
     public boolean isTokenExpired(Claims claims) {
         return claims.getExpiration().before(new Date());
     }

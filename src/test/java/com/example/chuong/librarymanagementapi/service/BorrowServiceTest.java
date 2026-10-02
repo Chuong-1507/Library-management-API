@@ -1,7 +1,7 @@
-package com.example.chuong.librarymanagementapi.service.impl;
+package com.example.chuong.librarymanagementapi.service;
 
 import com.example.chuong.librarymanagementapi.dto.request.Borrow.BorrowCreateRequest;
-import com.example.chuong.librarymanagementapi.dto.response.Borrow.BorrowResponse;
+import com.example.chuong.librarymanagementapi.dto.response.BorrowResponse;
 import com.example.chuong.librarymanagementapi.entity.Book;
 import com.example.chuong.librarymanagementapi.entity.Borrow;
 import com.example.chuong.librarymanagementapi.entity.Enum.ErrorCode;
@@ -12,6 +12,7 @@ import com.example.chuong.librarymanagementapi.mapper.BorrowMapper;
 import com.example.chuong.librarymanagementapi.repository.BookRepository;
 import com.example.chuong.librarymanagementapi.repository.BorrowRepository;
 import com.example.chuong.librarymanagementapi.repository.UserRepository;
+import com.example.chuong.librarymanagementapi.service.serviceImpl.BorrowServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,12 +28,13 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * Mockito test riêng, kiểm tra logic class BorrowServiceImpl
  */
 @ExtendWith(MockitoExtension.class)
-class BorrowServiceImplTest {
+class BorrowServiceTest {
 
     //Tạo Dependency giả, mô phỏng các method trong nó nhưng không hiểu rõ logic thật
     //Ta phải tự cấu hình (when) cho các method
@@ -72,7 +74,8 @@ class BorrowServiceImplTest {
         testBook = new Book();
         testBook.setId(bookId);
         testBook.setTitle("Clean Code");
-        testBook.setQuantity(5);
+        testBook.setTotalQuantity(10);
+        testBook.setAvailableQuantity(5);
 
         testBorrow = new Borrow();
         testBorrow.setId(borrowId);
@@ -104,11 +107,28 @@ class BorrowServiceImplTest {
         BorrowResponse result = borrowService.createBorrow("testuser", request);
 
         assertNotNull(result);
-        assertEquals(4, testBook.getQuantity()); // Đã trừ tồn kho từ 5 -> 4
+        assertEquals(4, testBook.getAvailableQuantity()); // Đã trừ tồn kho từ 5 -> 4
         verify(bookRepository).findByIdWithLock(bookId);
         verify(borrowRepository).save(any(Borrow.class));
     }
 
+    //out of stock
+    @Test
+    void createBorrow_OutOfStock_ThrowsExceptions(){
+
+        BorrowCreateRequest request = new BorrowCreateRequest();
+        request.setBookId(bookId);
+        request.setBorrowDate(LocalDate.now());
+        request.setReturnDate(LocalDate.now().plusDays(7));
+
+        when(userRepository.findByUsername(testUser.getUsername())).thenReturn(Optional.of(testUser));
+        when(bookRepository.findByIdWithLock(request.getBookId())).thenReturn(Optional.of(testBook));
+        testBook.setAvailableQuantity(0);
+        assertThatThrownBy(() -> borrowService.createBorrow(testUser.getUsername(), request))
+                .isInstanceOf(AppException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.BOOK_OUT_OF_STOCK);
+    }
+    //trùng sách đã mượn
     @Test
     void createBorrow_DuplicateBorrow_ThrowsException() {
         BorrowCreateRequest request = new BorrowCreateRequest();
@@ -124,6 +144,23 @@ class BorrowServiceImplTest {
         assertEquals(ErrorCode.ALREADY_BORROWED, ex.getErrorCode());
     }
 
+    //borrow exceed limit 5
+    @Test
+    void createBorrow_ExceedLimit5_ThrowsException(){
+        BorrowCreateRequest request = new BorrowCreateRequest();
+        request.setBookId(bookId);
+        request.setBorrowDate(LocalDate.now());
+        request.setReturnDate(LocalDate.now().plusDays(7));
+
+        when(userRepository.findByUsername(testUser.getUsername())).thenReturn(Optional.of(testUser));
+        when(borrowRepository.countByUserIdAndStatusIn(testUser.getId(), List.of(Status.BORROWING,Status.OVERDUE))).thenReturn(5L);
+
+        assertThatThrownBy(() -> borrowService.createBorrow(testUser.getUsername(),request))
+                .isInstanceOf(AppException.class)
+                .hasFieldOrPropertyWithValue("errorCode",ErrorCode.BORROW_LIMIT_EXCEEDED);
+
+    }
+    //trả lại sách sau khi tính tiền phạt và khóa sách
     @Test
     void returnBook_LateReturn_CalculatesFineAndLocksBook() {
         BorrowResponse mockResponse = new BorrowResponse();
@@ -140,7 +177,7 @@ class BorrowServiceImplTest {
         assertEquals(Status.RETURNED, testBorrow.getStatus());
         assertEquals(LocalDate.now(), testBorrow.getActualReturnDate());
         assertEquals(15000.0, testBorrow.getFineAmount()); // 3 ngày quá hạn * 5000 = 15000
-        assertEquals(6, testBook.getQuantity()); // Đã cộng trả tồn kho từ 5 -> 6
+        assertEquals(6, testBook.getAvailableQuantity()); // Đã cộng trả tồn kho từ 5 -> 6
         verify(bookRepository).findByIdWithLock(bookId);
     }
 

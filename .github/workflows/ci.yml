@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Run tests
+        env:
+          MAIL_USERNAME: test@example.com
+          MAIL_PASSWORD: dummy-password
+        run: ./gradlew test --no-daemon
+
+      - name: Build jar
+        run: ./gradlew bootJar --no-daemon -x test
+
+      - name: Build Docker image
+        run: docker build -t library-management-api:${{ github.sha }} .

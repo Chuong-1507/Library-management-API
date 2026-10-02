@@ -19,7 +19,8 @@ public class BookResponse {
     private String title;
     private String author;
     private BigDecimal price;
-    private Integer quantity;
+    private Integer totalQuantity;
+    private Integer availableQuantity;
     private String categoryName;
     private String publisher;
     private Integer publicationYear;

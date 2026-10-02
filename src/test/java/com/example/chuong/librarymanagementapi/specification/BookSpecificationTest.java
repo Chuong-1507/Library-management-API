@@ -70,7 +70,7 @@ public class BookSpecificationTest {
                 .category(category)
                 .price(price)
                 .publicationYear(year)
-                .quantity(5)
+                .availableQuantity(5)
                 .build();
         bookRepository.save(book);
     }

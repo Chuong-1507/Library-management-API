@@ -3,18 +3,15 @@ package com.example.chuong.librarymanagementapi.entity;
 import com.example.chuong.librarymanagementapi.entity.Enum.Status;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Set;
 import java.util.UUID;
-
+@Data
 @Entity
-@Getter
-@Setter
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @NotNull
@@ -51,5 +48,6 @@ public class Borrow {
 
     private LocalDate actualReturnDate;
 
-    private Double fineAmount;
+    @Column(name = "fine_amount",precision = 10, scale = 2)
+    private BigDecimal fineAmount;
 }

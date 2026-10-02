@@ -29,7 +29,7 @@ public class BookUpdateRequest {
 
     @NotNull(message = "Quantity không được null")
     @Min(value = 0, message = "Quantity không được âm")
-    private Integer quantity;
+    private Integer totalQuantity;
 
     @NotNull(message = "Category không được null")
     private UUID categoryId;

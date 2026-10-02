@@ -10,6 +10,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
 import java.util.Set;
 
 @Component
@@ -31,6 +32,9 @@ public class AdminSeeder implements CommandLineRunner {
             admin.setUsername(adminUsername);
             admin.setPassword(passwordEncoder.encode(adminPassword));
             admin.setRoles(Set.of(Role.ADMIN,Role.USER));
+            admin.setEmail("admin@gmail.com");
+            admin.setFullName("I'm admin");
+            admin.setCreatedAt(LocalDateTime.now());
             userRepository.save(admin);
             System.out.println("ADMIN has been created with password: 123456, please change it ! ");
 
@@ -39,17 +43,3 @@ public class AdminSeeder implements CommandLineRunner {
     }
 }
 
-//private final UserRepository userRepository;
-//    private final PasswordEncoder passwordEncoder;
-//
-//    @Override
-//    public void run(String @NonNull ... args) throws Exception {
-//        if (userRepository.findByUsername("admin").isEmpty()){
-//            User admin = new User();
-//            admin.setUsername("admin");
-//            admin.setPassword(passwordEncoder.encode("123456"));
-//            admin.setRoles(Set.of(Role.ADMIN,Role.USER));//admin vừa là admin, vừa là user
-//            userRepository.save(admin);
-//            System.out.println("ADMIN has been created with password: 123456, please change it !");
-//        }
-//    }
