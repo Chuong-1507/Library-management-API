@@ -10,15 +10,14 @@ import lombok.*;
 @Builder
 @NoArgsConstructor(force = true)
 @AllArgsConstructor
-@RequiredArgsConstructor
 public class RegisterRequest {
     @NotBlank(message = "Username không được để trống")
     @Size(min = 3, max = 50, message = "Username phải từ 3 đến 50 ký tự")
-    private final String username;
+    private String username;
 
     @NotBlank(message = "Password không được để trống")
     @Size(min = 6, message = "Password phải có ít nhất 6 ký tự")
-    private final String password;
+    private String password;
 
     @NotBlank @Email
     private String email;

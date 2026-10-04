@@ -39,7 +39,7 @@ public class AuthControllerTest {
     void register_success_returns201() throws Exception {
         RegisterRequest request = RegisterRequest.builder()
                 .username("newuser")
-                .password("password123")
+                .password("Password123")
                 .email("newuser@example.com")
                 .fullName("New User")
                 .build();

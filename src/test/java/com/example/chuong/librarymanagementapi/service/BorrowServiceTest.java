@@ -21,6 +21,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -180,7 +181,7 @@ class BorrowServiceTest {
         assertNotNull(result);
         assertEquals(Status.RETURNED, testBorrow.getStatus());
         assertEquals(LocalDate.now(), testBorrow.getActualReturnDate());
-        assertEquals(15000.0, testBorrow.getFineAmount()); // 3 ngày quá hạn * 5000 = 15000
+        assertEquals(0, BigDecimal.valueOf(15000).compareTo(testBorrow.getFineAmount()));// 3 ngày quá hạn * 5000 = 15000
         assertEquals(6, testBook.getAvailableQuantity()); // Đã cộng trả tồn kho từ 5 -> 6
         verify(bookRepository).findByIdWithLock(bookId);
     }
