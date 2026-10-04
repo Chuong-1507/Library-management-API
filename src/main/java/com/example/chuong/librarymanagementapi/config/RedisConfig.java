@@ -3,6 +3,7 @@ package com.example.chuong.librarymanagementapi.config;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -27,6 +28,7 @@ import java.time.Duration;
  */
 @Configuration
 @EnableCaching // Kích hoạt tính năng Caching của Spring Boot (cho phép sử dụng @Cacheable, @CachePut, @CacheEvict,...)
+@Profile("!test")
 public class RedisConfig {
 
     /**

@@ -25,6 +25,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -159,6 +160,7 @@ public class BookControllerTest {
                         .param("page", "1")
                         .param("size", "10")
                         .param("title", "Clean"))
+                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.result.content").isArray())
                 .andExpect(jsonPath("$.result.page").value(1));
